@@ -17,3 +17,5 @@ unsigned short sp;
 
 unsigned char key[16];
 // hex based keypad, array stores current state of the key
+
+void emulateCycle();
