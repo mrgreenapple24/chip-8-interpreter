@@ -14,6 +14,11 @@ void emulateCycle() {
             switch(kk) {
                 case 0x00E0: {
                     // clear display
+                    for (int i = 0; i < 2048; i++) {
+                        gfx[i] = 0;
+                    }
+
+                    break;
                 }
 
                 case 0x00EE: { // return from subroutine
@@ -177,20 +182,52 @@ void emulateCycle() {
 
         case 0xC000: {
             // random byte and kk
+            unsigned char rand_byte = rand();
+            V[x] = rand_byte & kk;
+            break;
         }
 
         case 0xD000: {
-            // Display n-byte sprite starting at memroy location I at (Vx, Vy), set VF = collision
+            // Display n-byte sprite starting at memroy location I at (Vx, Vy), set VF = collisionun
+            unsigned char height = opcode & 0x000F;
+            unsigned char pixel;
+
+            V[0xF] = 0;
+
+            for (int yline = 0; yline < height; yline++) {
+                pixel = memory[I+yline];
+                for (int xline = 0; xline < height; xline++)  {
+                    if ((pixel & (0x80 >> xline)) != 0) {
+                        if (gfx[x + xline + ((y + yline) * 64)] == 1) {
+                            V[0xF] = 1;
+                        }
+
+                        gfx[x+xline+((y+yline) * 64)] ^= 1;
+                    }
+                }
+            }
         }
 
         case 0xE000: {
             switch (kk) {
                 case 0x009E: {
                     // skip next instruction if key with value Vx is pressed
+                    if (key[V[x]] != 0) {
+                        pc += 2;
+                    }
+
+                    pc+=2;
+                    break;
                 }
 
                 case 0x00A1: {
                     // opposite of first case
+                    if (key[V[x] == 0]) {
+                        pc += 2;
+                    }
+
+                    pc+=2;
+                    break;
                 }
 
                 default: {
@@ -203,6 +240,8 @@ void emulateCycle() {
             switch(kk) {
                 case 0x0007: {
                     // Set Vx = delay timer value
+                    V[x] = delay_timer;
+                    break;
                 }
 
                 case 0x000A: {
@@ -211,10 +250,28 @@ void emulateCycle() {
 
                 case 0x0015: {
                     // set delay timer = Vx
+                    delay_timer = V[x];
+                    break;
+                }
+
+                case 0x0018: {
+                    // set sound timer = Vx
+                    sound_timer = V[x];
+                    break;
+                }
+
+                case 0x001E: {
+                    // set I = I + Vx
+
+                    I +=  V[x];
+                    break;
                 }
 
                 case 0x0029: {
                     // set I =  location of sprite for digit Vx
+
+                    I = chip8_fontset[V[x]*5];
+                    break;
                 }
 
                 case 0x0033: {
@@ -254,4 +311,12 @@ void emulateCycle() {
             printf("Unknown Opcode: 0x%X\n", opcode);
     }
     // update timers
+    if(delay_timer > 0) --delay_timer;
+ 
+    if(sound_timer > 0)
+    {
+        if(sound_timer == 1)
+        printf("BEEP!\n");
+        --sound_timer;
+    }  
 }

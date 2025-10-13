@@ -5,13 +5,11 @@ CHIP-8 is a simple interpreted language used in the 1970s for learning and runni
 
 Right now, this project includes:
 - The core structure of the emulator (memory, registers, display, etc.)
-- Partial implementation of opcode handling
+- Complete implementation of opcode handling
 
 ### Next steps
-- Finish implementing all opcodes  
 - Add display rendering and input handling  
 - Load and run simple CHIP-8 ROMs
 
 ---
-
 Work in progress 🧩
